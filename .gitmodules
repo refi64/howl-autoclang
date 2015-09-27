@@ -1,0 +1,3 @@
+[submodule "ljclang"]
+	path = ljclang
+	url = https://github.com/kirbyfan64/ljclang.git
