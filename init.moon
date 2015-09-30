@@ -19,9 +19,18 @@ with config
     default: {}
     type_of: 'string_list'
 
+  .define
+    name: 'clang_placeholders'
+    description: 'Whether or not to insert placeholder text after a Clang completion'
+    default: true
+    type_of: 'boolean'
+
 completer = bundle_load 'clang_completer'
 c = mode.by_name 'c'
 c.completers = { completer, 'in_buffer' }
+c.on_completion_accepted = (completion, context) =>
+  @completer or= completer!
+  @completer\finish_completion completion, context
 
 {
   info:

@@ -5,9 +5,11 @@ clang = bundle_load 'ljclang/clang'
 is_typed = (c) -> c.kind.value == clang.completion_kinds.TypedText
 
 units = {}
+tab = {}
 
 complete = (context) =>
   return if not config.clang_completion
+  tab = {}
   line = context.buffer.lines\at_pos context.pos
   lineno = line.nr
   colno = context.pos - line.start_pos
@@ -27,13 +29,22 @@ complete = (context) =>
   res = {}
   resl = 0
   for compl in *compls.results
-    for c in *compl.string.chunks
+    nchunks = #compl.string.chunks
+    for i, c in ipairs compl.string.chunks
       if is_typed(c) and c.text\find prefix, 1, true
         resl += 1
         res[resl] = c.text
+        if config.clang_placeholders and i < nchunks
+          after = {j-i, d.text for j, d in ipairs compl.string.chunks when j > i}
+          tab[c.text] = table.concat after
+        break
+  res.authoritive = true
   res
 
-finish_completion = (completion, context) -> nil
+finish_completion = (completion, context) =>
+  if next = tab[completion]
+    context.buffer\insert next, context.pos
+    return context.pos + next\len!
 
 ->
   {
