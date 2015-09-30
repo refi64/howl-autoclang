@@ -14,16 +14,15 @@ complete = (context) =>
   lineno = line.nr
   colno = context.pos - line.start_pos
   path = context.buffer.file.path
-  prefix = context.prefix\match'[%w_]+$' or ''
-  prefix_len = prefix\len!
   index = clang.Index 0, config.clang_diagnostics
   unsaved = {[path]: context.buffer.text}
+  opts = {clang.TranslationUnit.PrecompiledPreamble}
   unit = nil
   if units[path] and units[path].args == config.clang_arguments
     unit = units[path].unit
-    unit\reparse unsaved
+    unit\reparse unsaved, opts
   else
-    unit = index\parse path, config.clang_arguments, unsaved
+    unit = index\parse path, config.clang_arguments, unsaved, opts
     units[path] = {:unit, args: config.clang_arguments}
   compls = unit\complete_at path, lineno, colno, unsaved
   res = {}
@@ -31,7 +30,7 @@ complete = (context) =>
   for compl in *compls.results
     nchunks = #compl.string.chunks
     for i, c in ipairs compl.string.chunks
-      if is_typed(c) and c.text\find prefix, 1, true
+      if is_typed(c) and c.text\find context.word.text, 1, true
         resl += 1
         res[resl] = c.text
         if config.clang_placeholders and i < nchunks
