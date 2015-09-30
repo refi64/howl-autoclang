@@ -43,7 +43,7 @@ complete = (context) =>
 finish_completion = (completion, context) =>
   if next = tab[completion]
     context.buffer\insert next, context.pos
-    return context.pos + next\len!
+    return if next\sub(1,1) == '(' then context.pos+1 else context.pos
 
 ->
   {
