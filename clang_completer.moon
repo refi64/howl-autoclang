@@ -4,6 +4,8 @@ clang = bundle_load 'ljclang/clang'
 
 is_typed = (c) -> c.kind.value == clang.completion_kinds.TypedText
 
+units = {}
+
 complete = (context) =>
   return if not config.clang_completion
   line = context.buffer.lines\at_pos context.pos
@@ -14,7 +16,13 @@ complete = (context) =>
   prefix_len = prefix\len!
   index = clang.Index 0, config.clang_diagnostics
   unsaved = {[path]: context.buffer.text}
-  unit = index\parse path, config.clang_arguments, unsaved
+  unit = nil
+  if units[path] and units[path].args == config.clang_arguments
+    unit = units[path].unit
+    unit\reparse unsaved
+  else
+    unit = index\parse path, config.clang_arguments, unsaved
+    units[path] = {:unit, args: config.clang_arguments}
   compls = unit\complete_at path, lineno, colno, unsaved
   res = {}
   resl = 0
