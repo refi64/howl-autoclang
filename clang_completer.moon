@@ -4,27 +4,37 @@ clang = bundle_load 'ljclang/clang'
 
 is_typed = (c) -> c.kind.value == clang.completion_kinds.TypedText
 
+del = (s, i) -> s\sub(1, i-1) .. s\sub i+1, -1
+
 units = {}
 tab = {}
+prev = {}
 
 complete = (context) =>
   return if not config.clang_completion
   tab = {}
-  line = context.buffer.lines\at_pos context.pos
-  lineno = line.nr
-  colno = context.pos - line.start_pos
-  path = context.buffer.file.path
-  index = clang.Index 0, config.clang_diagnostics
-  unsaved = {[path]: context.buffer.text}
-  opts = {clang.TranslationUnit.PrecompiledPreamble}
-  unit = nil
-  if units[path] and units[path].args == config.clang_arguments
-    unit = units[path].unit
-    unit\reparse unsaved, opts
+  text = context.buffer.text
+  compls = nil
+  if prev.text and prev.text\len! == text\len!-1 and prev.text == del(text, context.pos-1) and text\sub(context.pos-2, context.pos-1)\gmatch'%w%w'!
+    compls = prev.compls
   else
-    unit = index\parse path, config.clang_arguments, unsaved, opts
-    units[path] = {:unit, args: config.clang_arguments}
-  compls = unit\complete_at path, lineno, colno, unsaved
+    line = context.buffer.lines\at_pos context.pos
+    lineno = line.nr
+    colno = context.pos - line.start_pos
+    path = context.buffer.file.path
+    index = clang.Index 0, config.clang_diagnostics
+    unsaved = {[path]: text}
+    opts = {clang.TranslationUnit.PrecompiledPreamble}
+    unit = nil
+    if units[path] and units[path].args == config.clang_arguments
+      unit = units[path].unit
+      unit\reparse unsaved, opts
+    else
+      unit = index\parse path, config.clang_arguments, unsaved, opts
+      units[path] = {:unit, args: config.clang_arguments}
+    compls = unit\complete_at path, lineno, colno, unsaved
+    prev.compls = compls
+  prev.text = text
   res = {}
   resl = 0
   for compl in *compls.results
