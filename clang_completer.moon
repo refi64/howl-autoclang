@@ -61,7 +61,6 @@ complete = (context) =>
           -- Get all the text AFTER the current chunk.
           after = {j-i, d.text for j, d in ipairs compl.string.chunks when j > i}
           tab[c.text] = table.concat after -- Save it.
-        break
   res.authoritive = true
   res
 
