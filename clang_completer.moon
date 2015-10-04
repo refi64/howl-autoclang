@@ -68,8 +68,14 @@ finish_completion = (completion, context) =>
   if next = tab[completion]
     -- Insert the prefix.
     context.buffer\insert next, context.pos
+    -- If the text is (), jump ahead by two.
+    return if next\gmatch'^%(%)'!
+      context.pos+1
     -- If the next character is (, <, or [, jump ahead.
-    return if next\sub(1,1)\gmatch'[(<[]' then context.pos+1 else context.pos
+    elseif next\sub(1, 1)\gmatch'[(<[]'!
+      context.pos+2
+    else
+      context.pos
 
 ->
   {
