@@ -25,6 +25,12 @@ with config
     default: true
     type_of: 'boolean'
 
+  .define
+    name: 'clang_ignored_extensions'
+    description: 'File extensions that should be ignored, even if they use the C mode'
+    default: {'l', 'y', 'dasc'}
+    type_of: 'string_list'
+
 completer = bundle_load 'clang_completer'
 c = mode.by_name 'c'
 c.completers = { completer, 'in_buffer' }

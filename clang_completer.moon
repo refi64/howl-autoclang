@@ -12,8 +12,14 @@ units = {} -- Parsed units.
 tab = {} -- A table of the completion placeholders.
 prev = {} -- The previous completion.
 
+is_ignored_ext = (file) ->
+  for ext in *config.clang_ignored_extensions
+    return true if file.extension == ext
+  false
+
 complete = (context) =>
-  return if not config.clang_completion
+  file = context.buffer.file
+  return if not config.clang_completion or is_ignored_ext file
   tab = {}
   text = context.buffer.text
   compls = nil
@@ -29,7 +35,7 @@ complete = (context) =>
     line = context.buffer.lines\at_pos context.pos -- Line object.
     lineno = line.nr
     colno = context.pos - line.start_pos
-    path = context.buffer.file.path
+    path = file.path
     index = clang.Index 0, config.clang_diagnostics
     unsaved = {[path]: text} -- Unsaved files.
     opts = {clang.TranslationUnit.PrecompiledPreamble} -- Precompile the headers.
