@@ -72,13 +72,18 @@ complete = (context) =>
 
 finish_completion = (completion, context) =>
   if next = tab[completion]
-    -- Insert the prefix.
+    next_char = next\sub(1, 1)
+    is_open = next_char\match'[(<[]'
+    -- Don't insert anything is the next character is already there.
+    return if is_open and context.buffer\sub(context.pos, context.pos) == next_char
+
     context.buffer\insert next, context.pos
+
     -- If the text is (), jump ahead by two.
     return if next\match'^%(%)'
       context.pos+2
-    -- If the next character is (, <, or [, jump ahead.
-    elseif next\sub(1, 1)\match'[(<[]'
+    -- If the next character is a bracket, jump ahead.
+    elseif is_open
       context.pos+1
     else
       context.pos
