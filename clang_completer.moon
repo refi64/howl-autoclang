@@ -21,7 +21,6 @@ is_ignored_ext = (file) ->
 complete = (context) =>
   file = context.buffer.file
   return if not config.clang_completion or is_ignored_ext file
-  tab = {}
   text = context.buffer.text
   compls = nil
   res = {}
@@ -34,6 +33,7 @@ complete = (context) =>
     text\sub(context.pos-2, context.pos-1)\gmatch'%w%w'!
     res = prev.res
   else
+    tab = {}
     line = context.buffer.lines\at_pos context.pos -- Line object.
     lineno = line.nr
     colno = context.pos - line.start_pos
