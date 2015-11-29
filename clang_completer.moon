@@ -1,3 +1,4 @@
+import Matcher from howl.util
 import config from howl
 
 clang = bundle_load 'ljclang/clang'
@@ -23,6 +24,7 @@ complete = (context) =>
   tab = {}
   text = context.buffer.text
   compls = nil
+  res = {}
   -- This (long) condition checks if the only difference between the current
   -- completion context and the last is that another letter was added to a word.
   -- If so, we can reuse the results of the last completion instead of reparsing
@@ -30,7 +32,7 @@ complete = (context) =>
   if prev.text and prev.text\len! == text\len!-1 and
     prev.text == del(text, context.pos-1) and
     text\sub(context.pos-2, context.pos-1)\gmatch'%w%w'!
-    compls = prev.compls
+    res = prev.res
   else
     line = context.buffer.lines\at_pos context.pos -- Line object.
     lineno = line.nr
@@ -48,27 +50,28 @@ complete = (context) =>
       unit = index\parse path, config.clang_arguments, unsaved, opts
       units[path] = {:unit, args: config.clang_arguments}
     compls = unit\complete_at path, lineno, colno, unsaved
-    -- Reset the previous completion list.
-    prev.compls = compls
-  prev.text = text
-  -- The result table and length.
-  res = {}
-  resl = 0
-  for compl in *compls.results
-    nchunks = #compl.string.chunks
-    for i, c in ipairs compl.string.chunks
-      -- If the completion is TypedText and the current word contains it, add it to
-      -- the result table.
-      if is_typed(c) and c.text\find context.word.text, 1, true
-        resl += 1
-        res[resl] = c.text
-        -- If the placeholder results should be gathered, then do so.
-        if config.clang_placeholders and i < nchunks
-          -- Get all the text AFTER the current chunk.
-          after = {j-i, d.text for j, d in ipairs compl.string.chunks when j > i}
-          tab[c.text] = table.concat after -- Save it.
+    -- The result table and length.
+    res = {}
+    resl = 0
+    for compl in *compls.results
+      nchunks = #compl.string.chunks
+      for i, c in ipairs compl.string.chunks
+        -- If the completion is TypedText and the current word contains it, add it
+        -- to the result table.
+        if is_typed c
+          resl += 1
+          res[resl] = c.text
+          -- If the placeholder results should be gathered, then do so.
+          if config.clang_placeholders and i < nchunks
+            -- Get all the text AFTER the current chunk.
+            after = {j-i, d.text for j, d in ipairs compl.string.chunks when j > i}
+            tab[c.text] = table.concat after -- Save it.
   res.authoritive = true
-  res
+  -- Reset the previous results list.
+  prev.res = res
+
+  prev.text = text
+  Matcher(res) context.word_prefix
 
 finish_completion = (completion, context) =>
   if next = tab[completion]
