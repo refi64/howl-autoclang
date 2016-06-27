@@ -13,11 +13,6 @@ Installation
    $ git clone --recursive https://github.com/kirbyfan64/howl-autoclang.git
    $ cd howl-autoclang/ljclang
    $ make
-   $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD
-
-Also put the following in ``.profile``::
-   
-   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.howl/bundles/howl-autoclang/ljclang
 
 Usage
 *****
