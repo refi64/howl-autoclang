@@ -39,10 +39,6 @@ c.on_completion_accepted = (completion, context) =>
   @completer\finish_completion completion, context
 
 {
-  info:
-    author: 'Ryan Gonzalez'
-    description: 'Clang-based autocompletion for C/C++'
-    license: 'MIT'
-
-  unload: () -> nil
+  info: bundle_load('aisu').meta
+  unload: () ->
 }
