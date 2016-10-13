@@ -3,6 +3,7 @@
     author: 'Ryan Gonzalez'
     description: 'Clang-based autocompletion for C/C++'
     license: 'MIT'
+    version: '0.1'
 
   build: (buf, dir) ->
     cmds = {
